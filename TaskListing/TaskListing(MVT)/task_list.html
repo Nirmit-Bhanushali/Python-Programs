@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{{title}}</title>
+    </head>
+    <body>
+        <h1>{%if tasks%}Current Tasks{%else%}No Tasks Found{%endif%}</h1>
+        <ul>
+            {%for task in tasks%}
+            <li>
+                [{{"Done" if task.completed else "Pending" }}]-{{task.title}}
+            </li>
+            {% endfor %}
+        </ul>
+    </body>
+</html>

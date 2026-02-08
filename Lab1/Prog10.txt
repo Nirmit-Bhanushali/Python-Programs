@@ -1,0 +1,183 @@
+# 10. Create Django project for Book store File
+Step 1: Create a Django Project
+
+Open your terminal or command prompt and run:
+
+django-admin startproject bookstore
+cd bookstore
+
+
+Step 2: Create a Django App
+
+Inside the project, create an app called store:
+
+python manage.py startapp store
+
+Now, add the app to your project settings.
+
+
+Step 3: Add App to settings.py
+
+Open bookstore/settings.py and in the INSTALLED_APPS list, add:
+
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'store',  # our new app
+]
+
+Step 4: Create the Book Model
+
+In store/models.py, define a simple Book model:
+
+from django.db import models
+
+class Book(models.Model):
+    title = models.CharField(max_length=200)
+    author = models.CharField(max_length=100)
+    price = models.DecimalField(max_digits=5, decimal_places=2)
+    published_date = models.DateField()
+
+    def __str__(self):
+        return self.title
+
+Step 5: Run Migrations
+
+Run these commands to apply your model to the database:
+
+python manage.py makemigrations
+python manage.py migrate
+
+Step 6: Register the Model in Admin
+
+In store/admin.py:
+
+from django.contrib import admin
+from .models import Book
+
+admin.site.register(Book)
+
+
+Now, create a superuser to log into the admin panel:
+
+python manage.py createsuperuser
+
+
+Then run: python manage.py runserver
+
+Go to: http://127.0.0.1:8000/admin
+Login and you can add, edit, or delete books.
+
+
+Step 7: Create Views for Books
+
+In store/views.py:
+
+from django.shortcuts import render, redirect
+from .models import Book
+from .forms import BookForm
+
+def book_list(request):
+    books = Book.objects.all()
+    return render(request, 'store/book_list.html', {'books': books})
+
+def add_book(request):
+    if request.method == 'POST':
+        form = BookForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('book_list')
+    else:
+        form = BookForm()
+    return render(request, 'store/add_book.html', {'form': form})
+
+Step 8: Create a Form
+
+In store/forms.py:
+
+from django import forms
+from .models import Book
+
+class BookForm(forms.ModelForm):
+    class Meta:
+        model = Book
+        fields = ['title', 'author', 'price', 'published_date']
+
+Step 9: Add URLs
+
+Create a urls.py inside the store folder:
+
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.book_list, name='book_list'),
+    path('add/', views.add_book, name='add_book'),
+]
+
+
+Then, include this in the main project bookstore/urls.py:
+
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('store.urls')),
+]
+
+Step 10: Create Templates
+
+Create a folder store/templates/store/ and add the following files:
+
+book_list.html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Book List</title>
+</head>
+<body>
+    <h1>Book Store</h1>
+    <a href="{% url 'add_book' %}">Add New Book</a>
+    <ul>
+        {% for book in books %}
+            <li>{{ book.title }} by {{ book.author }} - ₹{{ book.price }}</li>
+        {% empty %}
+            <li>No books available.</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
+
+add_book.html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Book</title>
+</head>
+<body>
+    <h1>Add a New Book</h1>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Save</button>
+    </form>
+    <a href="{% url 'book_list' %}">Back to list</a>
+</body>
+</html>
+
+Step 11: Run the Server
+python manage.py runserver
+
+
+Visit:
+
+http://127.0.0.1:8000/
+View all books
+
+http://127.0.0.1:8000/add/
+Add a new book
